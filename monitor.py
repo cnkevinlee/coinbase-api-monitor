@@ -45,13 +45,15 @@ for row in crypto_list:
     print("".join(word.ljust(col_width) for word in row))
 
 #user preferences
-crypto_choice = int(input("\nCrypto to monitor: "))
-crypto_amount = float(input("Enter your current amount of cryptos: "))
-delay = int(input("Enter the delay in seconds: "))
-currency = input("Currency (EUR/USD/GBP): ")
+# crypto_choice = int(input("\nCrypto to monitor: "))
+# crypto_amount = float(input("Enter your current amount of cryptos:
+# delay = int(input("Enter the delay in seconds: "))
+# currency = input("Currency (EUR/USD/GBP): ")
 
-previous_price = 0.0
-previous_change = 0.0
+previous_btc_price = 0.0
+previous_eth_price = 0.0
+
+# previous_change = 0.0
 tmp = sp.call('clear', shell=True) #clear terminal
 
 while True:
@@ -64,41 +66,67 @@ while True:
              'Accept-Encoding' : 'gzip, deflate, br', 
              'Accept-Language' : 'en-GB,en-US;q=0.9,en;q=0.8'}
     session1 = requests.Session()
-    r1 = session1.get("https://www.coinbase.com/api/v2/assets/prices?base="+currency+"&filter=listed&resolution=latest", headers=headers)
+    r1 = session1.get("https://www.coinbase.com/api/v2/assets/prices?base="+"usd"+"&filter=listed&resolution=latest", headers=headers)
+#    r1 = session1.get("https://www.coinbase.com/api/v2/assets/prices?base="+currency+"&filter=listed&resolution=latest", headers=headers)
+
     json_data = json.loads(r1.text)
 
+    # crypto_name = json_data['data'][crypto_choice]['base']
+    # currency = json_data['data'][crypto_choice]['currency']
+    # price = json_data['data'][crypto_choice]['prices']['latest']
+    # change = json_data['data'][crypto_choice]['prices']['latest_price']['percent_change']['hour']
+    # current_balance = round(((float(price) * crypto_amount)/1),5) #calculate current balance
+    crypto_btc = json_data['data'][0]['base']
+    currency_btc = json_data['data'][0]['currency']
+    price_btc = json_data['data'][0]['prices']['latest']
+    change_btc = json_data['data'][0]['prices']['latest_price']['percent_change']['hour']
+    #current_balance = round(((float(price_btc) * crypto_amount)/1),5) #calculate current balance
 
-    crypto_name = json_data['data'][crypto_choice]['base']
-    currency = json_data['data'][crypto_choice]['currency']
-    price = json_data['data'][crypto_choice]['prices']['latest']
-    change = json_data['data'][crypto_choice]['prices']['latest_price']['percent_change']['hour']
-    current_balance = round(((float(price) * crypto_amount)/1),5) #calculate current balance
-        
+    crypto_eth = json_data['data'][3]['base']
+    currency_eth = json_data['data'][3]['currency']
+    price_eth = json_data['data'][3]['prices']['latest']
+    change_eth = json_data['data'][3]['prices']['latest_price']['percent_change']['hour']
+
     #check market status
-    if float(change) >= 0.0:
-        new_change = colored("Market is up by "+str(round(change,10))+"%",'green')
-    else:
-        new_change = colored("Market down by "+str(round(change,10))+"%",'red')
+    # if float(change) >= 0.0:
+    #     new_change = colored("Market is up by "+str(round(change,10))+"%",'green')
+    # else:
+    #     new_change = colored("Market down by "+str(round(change,10))+"%",'red')
 
     #check price status
-    if previous_price == float(price):
+    if previous_btc_price == float(price_btc):
         # print("[*] Same price", price)
         pass
-    elif previous_price < float(price):
-        up = colored("[+] "+crypto_name+" price is: "+str(price)+" "+currency,'green')
-        print(timer, up, new_change, colored("since the last hour.",'green'),colored("Balance: "+str(current_balance)+" "+currency,'yellow'))
-        previous_price = float(price)
-        previous_change = float(change)
+    elif previous_btc_price < float(price_btc):
+        up_btc = colored("[+] "+crypto_btc+" $ "+str(price_btc)+"; ",'green')
+        if previous_eth_price < float(price_eth):
+            up_eth = colored("[+] "+crypto_eth+" $ "+str(price_eth)+"; ",'green')
+            print(timer, up_btc, up_eth)
+        elif previous_eth_price > float(price_eth):
+            down_eth = colored("[-] "+crypto_eth+" $ "+str(price_eth)+"; ",'red')
+            print(timer, up_btc, down_eth)
+#       print(timer, up, new_change, colored("since the last hour.",'green'),colored("Balance: "+str(current_balance)+" "+currency,'yellow'))
+        previous_btc_price = float(price_btc)
+        previous_eth_price = float(price_eth)
+#        previous_change = float(change_btc)
 
-    elif previous_price > float(price):
-        down = colored("[-] "+crypto_name+" price is: "+str(price)+" "+currency,'red')
-        print(timer, down, new_change, colored("since the last hour.",'red'),colored("Balance: "+str(current_balance)+" "+currency,'yellow'))
-        previous_price = float(price)
-        previous_change = float(change)
+    elif previous_btc_price > float(price_btc):
+        down_btc = colored("[-] "+crypto_btc+" $ "+str(price_btc)+"; ",'red')
+        if previous_eth_price < float(price_eth):
+            up_eth = colored("[+] "+crypto_eth+" $ "+str(price_eth)+"; ",'green')
+            print(timer, down_btc, up_eth)
+        elif previous_eth_price > float(price_eth):
+            down_eth = colored("[-] "+crypto_eth+" $ "+str(price_eth)+"; ",'red')
+            print(timer, down_btc, down_eth)
+
+#        print(timer, down, new_change, colored("since the last hour.",'red'),colored("Balance: "+str(current_balance)+" "+currency,'yellow'))
+        previous_btc_price = float(price_btc)
+        previous_eth_price = float(price_eth)
+#        previous_change = float(change_btc)
     else:
         pass
 
-    time.sleep(delay)
+    time.sleep(8)
 
 
 
